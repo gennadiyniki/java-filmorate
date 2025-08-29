@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.сontroller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -21,11 +19,9 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/users")
-
 public class UserController {
     private Map<Long, User> users = new HashMap<>();
     private long nextId = 1;
-
 
     @PostMapping
     public User createUser(@RequestBody User user) {
@@ -50,7 +46,7 @@ public class UserController {
         for (User saveUser : users.values()) {
             if (saveUser.getEmail().equalsIgnoreCase(user.getEmail())) {
                 log.warn("Email уже используется: {}", user.getEmail());
-                throw new DuplicatedDataException("Этот имейл уже используется");
+                throw new ValidationException("Этот имейл уже используется");
             }
         }
 
@@ -58,7 +54,6 @@ public class UserController {
             log.warn("Дата рождения в будущем: {}", user.getBirthday());
             throw new ValidationException("Дата рождения не может быть в будущем");
         }
-
 
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
@@ -72,16 +67,21 @@ public class UserController {
         return user;
     }
 
-    @PutMapping("/{userId}")
-    public User updateUser(@PathVariable Long userId, @RequestBody User updatedUser) { // Переименовал параметр
-        log.info("Запрос на обновление пользователя с ID: {}", userId);
+    @PutMapping
+    public User updateUser(@RequestBody User updatedUser) {
+        log.info("Запрос на обновление пользователя: {}", updatedUser);
 
-        if (!users.containsKey(userId)) {
-            log.warn("Пользователь с ID {} не найден", userId);
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+        if (updatedUser.getId() == 0) {
+            log.warn("Попытка обновления пользователя без ID");
+            throw new ValidationException("ID пользователя обязателен для обновления");
         }
 
-        User saveUser = users.get(userId);
+        if (!users.containsKey(updatedUser.getId())) {
+            log.warn("Пользователь с ID {} не найден", updatedUser.getId());
+            throw new ValidationException("Пользователь с ID " + updatedUser.getId() + " не найден");
+        }
+
+        User saveUser = users.get(updatedUser.getId());
 
         if (updatedUser.getEmail() != null) {
             if (updatedUser.getEmail().isBlank()) {
@@ -97,7 +97,7 @@ public class UserController {
                 for (User userInMap : users.values()) {
                     if (userInMap.getEmail().equalsIgnoreCase(updatedUser.getEmail())) {
                         log.warn("Email уже используется: {}", updatedUser.getEmail());
-                        throw new DuplicatedDataException("Этот имейл уже используется");
+                        throw new ValidationException("Этот имейл уже используется");
                     }
                 }
             }
@@ -132,7 +132,7 @@ public class UserController {
             saveUser.setBirthday(updatedUser.getBirthday());
         }
 
-        log.info("Пользователь с ID {} успешно обновлен", userId);
+        log.info("Пользователь с ID {} успешно обновлен", updatedUser.getId());
         return saveUser;
     }
 
@@ -142,7 +142,7 @@ public class UserController {
         User user = users.get(userId);
         if (user == null) {
             log.warn("Пользователь с ID {} не найден", userId);
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+            throw new ValidationException("Пользователь с ID " + userId + " не найден");
         }
         log.info("Пользователь с ID {} найден: {}", userId, user.getName());
         return user;

@@ -1,8 +1,7 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.сontroller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
@@ -54,15 +53,21 @@ public class FilmController {
     }
 
 
-    @PutMapping("/{filmId}")
-    public Film update( @PathVariable Long filmId, @RequestBody Film film) {
-        log.info("Запрос на обновление фильма с ID: {}", filmId);
-        Film saveFilm = films.get(filmId);
+    @PutMapping
+    public Film updateFilm(@RequestBody Film film) {
+        log.info("Запрос на обновление фильма: {}", film);
 
-        if (saveFilm == null) {
-            log.warn("Фильм с ID {} не найден", filmId);
-            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+        if (film.getId() == 0) {
+            log.warn("Попытка обновления фильма без ID");
+            throw new ValidationException("ID фильма обязателен для обновления");
         }
+
+        Film savedFilm = films.get(film.getId());
+        if (savedFilm == null) {
+            log.warn("Фильм с ID {} не найден", film.getId());
+            throw new ValidationException("Фильм с ID " + film.getId() + " не найден");
+        }
+
         if (film.getName() == null || film.getName().isBlank()) {
             log.warn("Попытка при обновлении создать пустое название");
             throw new ValidationException("Название фильма не может быть пустым");
@@ -71,7 +76,10 @@ public class FilmController {
             log.warn("Слишком длинное описание: {} символов", film.getDescription().length());
             throw new ValidationException("Описание не может быть длиннее 200 символов");
         }
-
+        if (film.getReleaseDate() == null) {
+            log.warn("Дата релиза не указана при обновлении");
+            throw new ValidationException("Дата релиза обязательна");
+        }
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             log.warn("Некорректная дата релиза {}", film.getReleaseDate());
             throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
@@ -80,13 +88,14 @@ public class FilmController {
             log.warn("Некорректная продолжительность: {}", film.getDuration());
             throw new ValidationException("Продолжительность фильма должна быть положительным числом");
         }
-        saveFilm.setName(film.getName());
-        saveFilm.setDescription(film.getDescription());
-        saveFilm.setReleaseDate((film.getReleaseDate()));
-        saveFilm.setDuration(film.getDuration());
-        films.put(filmId, saveFilm);
 
-        return saveFilm;
+        savedFilm.setName(film.getName());
+        savedFilm.setDescription(film.getDescription());
+        savedFilm.setReleaseDate(film.getReleaseDate());
+        savedFilm.setDuration(film.getDuration());
+        films.put(film.getId(), savedFilm);
+
+        return savedFilm;
     }
 
     @GetMapping("/{filmId}")
@@ -95,7 +104,7 @@ public class FilmController {
         Film film = films.get(filmId);
         if (film == null) {
             log.warn("Фильм с ID {} не найден", filmId);
-            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+            throw new ValidationException("Фильм с ID " + filmId + " не найден");
         }
         log.info("Фильм с ID {} найден: {}", filmId, film.getName());
         return film;

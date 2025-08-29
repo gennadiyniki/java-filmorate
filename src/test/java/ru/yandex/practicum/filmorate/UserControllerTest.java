@@ -5,10 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.сontroller.UserController;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -111,7 +110,7 @@ public class UserControllerTest {
         newUser.setLogin("newlogin");
         newUser.setBirthday(LocalDate.of(1995, 1, 1));
 
-        assertThrows(DuplicatedDataException.class, () -> userController.createUser(newUser));
+        assertThrows(ValidationException.class, () -> userController.createUser(newUser));
     }
 
     @Test
@@ -120,12 +119,13 @@ public class UserControllerTest {
         Long userId = createdUser.getId();
 
         User updateData = new User();
+        updateData.setId(createdUser.getId());
         updateData.setEmail("new@email.com");
         updateData.setLogin("newlogin");
         updateData.setName("New Name");
         updateData.setBirthday(LocalDate.of(1995, 1, 1));
 
-        User updatedUser = userController.updateUser(userId, updateData);
+        User updatedUser = userController.updateUser(updateData);
 
         assertEquals("new@email.com", updatedUser.getEmail());
         assertEquals("newlogin", updatedUser.getLogin());
@@ -138,11 +138,12 @@ public class UserControllerTest {
         Long userId = createdUser.getId();
 
         User updateData = new User();
-        updateData.setEmail("partial@email.com");
+        updateData.setId(createdUser.getId());
+        updateData.setEmail("part@email.com");
 
-        User updatedUser = userController.updateUser(userId, updateData);
+        User updatedUser = userController.updateUser(updateData);
 
-        assertEquals("partial@email.com", updatedUser.getEmail());
+        assertEquals("part@email.com", updatedUser.getEmail());
         assertEquals("testlogin", updatedUser.getLogin());
         assertEquals("Test User", updatedUser.getName());
     }
@@ -152,7 +153,7 @@ public class UserControllerTest {
         userController.createUser(validUser);
 
         User anotherUser = new User();
-        anotherUser.setEmail("another@example.com");
+        anotherUser.setEmail("another@email.com");
         anotherUser.setLogin("anotherlogin");
         anotherUser.setBirthday(LocalDate.of(1985, 1, 1));
         userController.createUser(anotherUser);
