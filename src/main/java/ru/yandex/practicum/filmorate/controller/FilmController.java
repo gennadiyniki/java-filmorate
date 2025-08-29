@@ -25,7 +25,7 @@ GET /films получение всех фильмов.*/
 @RequestMapping("/films")
 public class FilmController {
     private Map<Long, Film> films = new HashMap<>();
-    private long nextId = 0;
+    private long nextId = 1;
 
     @PostMapping("/{filmId}")
     public Film createFilm(@RequestBody Film film) {

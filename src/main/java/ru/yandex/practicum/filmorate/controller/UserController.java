@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class UserController {
     private Map<Long, User> users = new HashMap<>();
-    private long nextId = 0;
+    private long nextId = 1;
 
 
     @PostMapping("/{userId}")
