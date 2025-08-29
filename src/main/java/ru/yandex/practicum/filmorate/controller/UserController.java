@@ -136,7 +136,7 @@ public class UserController {
         User user = users.get(userId);
         if (user == null) {
             log.warn("Пользователь с ID {} не найден", userId);
-            throw new NotFoundException("Пользовтель с ID" + user + " не найден");
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
         }
         log.info("Пользователь с ID {} найден: {}", userId, user.getName());
         return user;
