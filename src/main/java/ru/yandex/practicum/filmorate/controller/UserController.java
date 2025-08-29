@@ -67,7 +67,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public User updateUser(@RequestBody User updatedUser, @PathVariable Long userId) { // Переименовал параметр
+    public User updateUser(@PathVariable Long userId, @RequestBody User updatedUser) { // Переименовал параметр
         log.info("Запрос на обновление пользователя с ID: {}", userId);
 
         if (!users.containsKey(userId)) {

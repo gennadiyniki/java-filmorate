@@ -125,7 +125,7 @@ public class UserControllerTest {
         updateData.setName("New Name");
         updateData.setBirthday(LocalDate.of(1995, 1, 1));
 
-        User updatedUser = userController.updateUser(updateData, userId);
+        User updatedUser = userController.updateUser(userId, updateData);
 
         assertEquals("new@email.com", updatedUser.getEmail());
         assertEquals("newlogin", updatedUser.getLogin());
@@ -140,7 +140,7 @@ public class UserControllerTest {
         User updateData = new User();
         updateData.setEmail("partial@email.com");
 
-        User updatedUser = userController.updateUser(updateData, userId);
+        User updatedUser = userController.updateUser(userId, updateData);
 
         assertEquals("partial@email.com", updatedUser.getEmail());
         assertEquals("testlogin", updatedUser.getLogin());

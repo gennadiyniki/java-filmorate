@@ -55,7 +55,7 @@ public class FilmController {
 
 
     @PutMapping("/{filmId}")
-    public Film update(@RequestBody Film film, @PathVariable Long filmId) {
+    public Film update( @PathVariable Long filmId, @RequestBody Film film) {
         log.info("Запрос на обновление фильма с ID: {}", filmId);
         Film saveFilm = films.get(filmId);
 
