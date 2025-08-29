@@ -99,7 +99,7 @@ public class FilmControllerTest {
 
     @Test
     void minimumDuration() {
-        validFilm.setDuration(1); // минимальная положительная продолжительность
+        validFilm.setDuration(1);
 
         assertDoesNotThrow(() -> filmController.createFilm(validFilm));
     }
@@ -113,7 +113,7 @@ public class FilmControllerTest {
 
     @Test
     void emptyDescription() {
-        validFilm.setDescription(""); // пустое описание допустимо
+        validFilm.setDescription("");
 
         assertDoesNotThrow(() -> filmController.createFilm(validFilm));
     }
