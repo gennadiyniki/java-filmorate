@@ -32,6 +32,7 @@ public class UserControllerTest {
         validUser.setBirthday(LocalDate.of(1990, 1, 1));
 
     }
+
     @Test
     void CreateValidUser() {
         User createdUser = userController.createUser(validUser);
@@ -57,6 +58,7 @@ public class UserControllerTest {
 
         assertEquals("testlogin", createdUser.getName());
     }
+
     @Test
     void NullBirthday() {
         validUser.setBirthday(null);

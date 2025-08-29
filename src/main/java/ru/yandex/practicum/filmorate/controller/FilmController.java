@@ -24,8 +24,8 @@ GET /films получение всех фильмов.*/
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-private Map<Long, Film> films = new HashMap<>();
-private long nextId = 0;
+    private Map<Long, Film> films = new HashMap<>();
+    private long nextId = 0;
 
     @PostMapping("/{filmId}")
     public Film createFilm(@RequestBody Film film) {
@@ -35,9 +35,9 @@ private long nextId = 0;
             log.warn("Попытка создания фильма без названия {}", film);
             throw new ValidationException("Название фильма не может быть пустым");
         }
-        if (film.getDescription() != null && film.getDescription().length() >200){
+        if (film.getDescription() != null && film.getDescription().length() > 200) {
             log.warn("Попытка создания фильма с превышением допустимой длины: {}", film.getDescription());
-            throw  new ValidationException("Описание не может быть длиннее 200 символов");
+            throw new ValidationException("Описание не может быть длиннее 200 символов");
         }
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             log.warn("Попытка создания фильма с некорректной датой: {}", film.getReleaseDate());
@@ -52,7 +52,7 @@ private long nextId = 0;
         return film;
     }
 
-    private long getNextId(){
+    private long getNextId() {
         return nextId++;
     }
 
@@ -62,17 +62,17 @@ private long nextId = 0;
         log.info("Запрос на обновление фильма с ID: {}", filmId);
         Film saveFilm = films.get(filmId);
 
-        if(saveFilm == null) {
+        if (saveFilm == null) {
             log.warn("Фильм с ID {} не найден", filmId);
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
-        if(film.getName() == null || film.getName().isBlank()) {
+        if (film.getName() == null || film.getName().isBlank()) {
             log.warn("Попытка при обновлении создать пустое название");
             throw new ValidationException("Название фильма не может быть пустым");
         }
-        if (film.getDescription() != null && film.getDescription().length() >200){
+        if (film.getDescription() != null && film.getDescription().length() > 200) {
             log.warn("Слишком длинное описание: {} символов", film.getDescription().length());
-            throw  new ValidationException("Описание не может быть длиннее 200 символов");
+            throw new ValidationException("Описание не может быть длиннее 200 символов");
         }
 
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
@@ -93,18 +93,19 @@ private long nextId = 0;
     }
 
     @GetMapping("/{filmId}")
-        public Film getFilmById(@PathVariable Long filmId) {
-            log.info("Запрос на получение фильма с ID: {}", filmId);
-    Film film = films.get(filmId);
+    public Film getFilmById(@PathVariable Long filmId) {
+        log.info("Запрос на получение фильма с ID: {}", filmId);
+        Film film = films.get(filmId);
         if (film == null) {
             log.warn("Фильм с ID {} не найден", filmId);
-        throw new NotFoundException("Фильм с ID" + filmId + " не найден");
-    }
+            throw new NotFoundException("Фильм с ID" + filmId + " не найден");
+        }
         log.info("Фильм с ID {} найден: {}", filmId, film.getName());
         return film;
-        }
-    @GetMapping
-        public List<Film> getFilms(){
-        return new ArrayList<>(films.values());
-        }
     }
+
+    @GetMapping
+    public List<Film> getFilms() {
+        return new ArrayList<>(films.values());
+    }
+}

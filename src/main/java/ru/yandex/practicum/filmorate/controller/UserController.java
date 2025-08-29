@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/Users")
@@ -144,6 +145,7 @@ public class UserController {
     private long getNextId() {
         return nextId++;
     }
+
     @GetMapping
     public ArrayList<User> getUsers() {
         return new ArrayList<>(users.values());
