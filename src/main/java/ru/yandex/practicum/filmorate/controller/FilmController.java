@@ -12,14 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
-
-/*
-POST /films {id} добавление фильма;
-PUT /films{id} обновление фильма;
-GET /films получение всех фильмов.*/
-
-
 @Slf4j
 @RestController
 @RequestMapping("/films")
@@ -27,7 +19,7 @@ public class FilmController {
     private Map<Long, Film> films = new HashMap<>();
     private long nextId = 1;
 
-    @PostMapping("/{filmId}")
+    @PostMapping
     public Film createFilm(@RequestBody Film film) {
         log.info("Запрос на создание фильма: {}", film);
 
@@ -39,9 +31,9 @@ public class FilmController {
             log.warn("Попытка создания фильма с превышением допустимой длины: {}", film.getDescription());
             throw new ValidationException("Описание не может быть длиннее 200 символов");
         }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            log.warn("Попытка создания фильма с некорректной датой: {}", film.getReleaseDate());
-            throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
+        if (film.getReleaseDate() == null) {
+            log.warn("Дата релиза не указана");
+            throw new ValidationException("Дата релиза обязательна");
         }
         if (film.getDuration() <= 0) {
             log.warn("Попытка создания фильма c некорректной продолжительностью: {}", film.getDuration());
@@ -98,7 +90,7 @@ public class FilmController {
         Film film = films.get(filmId);
         if (film == null) {
             log.warn("Фильм с ID {} не найден", filmId);
-            throw new NotFoundException("Фильм с ID" + filmId + " не найден");
+            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
         log.info("Фильм с ID {} найден: {}", filmId, film.getName());
         return film;

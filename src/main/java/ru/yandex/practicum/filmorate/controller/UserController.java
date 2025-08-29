@@ -14,14 +14,14 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/Users")
+@RequestMapping("/users")
 
 public class UserController {
     private Map<Long, User> users = new HashMap<>();
     private long nextId = 1;
 
 
-    @PostMapping("/{userId}")
+    @PostMapping
     public User createUser(@RequestBody User user) {
         log.info("Запрос на создание пользователя: {}", user);
 
