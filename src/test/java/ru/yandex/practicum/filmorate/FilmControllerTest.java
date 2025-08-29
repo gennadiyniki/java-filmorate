@@ -55,9 +55,13 @@ public class FilmControllerTest {
 
     @Test
     void throwExceptionWhenReleaseDateBefore1895() {
-        validFilm.setReleaseDate(LocalDate.of(1894, 12, 31));
+        Film invalidFilm = new Film();
+        invalidFilm.setName("Test Film");
+        invalidFilm.setDescription("Test Description");
+        invalidFilm.setReleaseDate(LocalDate.of(1894, 12, 31));
+        invalidFilm.setDuration(120);
 
-        assertThrows(ValidationException.class, () -> filmController.createFilm(validFilm));
+        assertThrows(ValidationException.class, () -> filmController.createFilm(invalidFilm));
     }
 
     @Test
