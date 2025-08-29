@@ -30,7 +30,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    void CreateValidFilm() {
+    void createValidFilm() {
         Film createdFilm = filmController.createFilm(validFilm);
 
         assertNotNull(createdFilm);
@@ -40,35 +40,35 @@ public class FilmControllerTest {
     }
 
     @Test
-    void ThrowExceptionWhenNameIsEmpty() {
+    void throwExceptionWhenNameIsEmpty() {
         validFilm.setName("");
 
         assertThrows(ValidationException.class, () -> filmController.createFilm(validFilm));
     }
 
     @Test
-    void ThrowExceptionWhenNameIsNull() {
+    void throwExceptionWhenNameIsNull() {
         validFilm.setName(null);
 
         assertThrows(ValidationException.class, () -> filmController.createFilm(validFilm));
     }
 
     @Test
-    void ThrowExceptionWhenReleaseDateBefore1895() {
+    void throwExceptionWhenReleaseDateBefore1895() {
         validFilm.setReleaseDate(LocalDate.of(1894, 12, 31));
 
         assertThrows(ValidationException.class, () -> filmController.createFilm(validFilm));
     }
 
     @Test
-    void ReleaseDateEqualsFirstDateCreate() {
+    void releaseDateEqualsFirstDateCreate() {
         validFilm.setReleaseDate(LocalDate.of(1895, 12, 28));
 
         assertDoesNotThrow(() -> filmController.createFilm(validFilm));
     }
 
     @Test
-    void Description200Chars() {
+    void description200Chars() {
         String exact200Chars = "A".repeat(200);
         validFilm.setDescription(exact200Chars);
 
@@ -76,7 +76,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    void ThrowExceptionWhenDescription201Chars() {
+    void throwExceptionWhenDescription201Chars() {
         String tooLongDescription = "A".repeat(201);
         validFilm.setDescription(tooLongDescription);
 
@@ -84,35 +84,35 @@ public class FilmControllerTest {
     }
 
     @Test
-    void ThrowExceptionWhenDurationZero() {
+    void throwExceptionWhenDurationZero() {
         validFilm.setDuration(0);
 
         assertThrows(ValidationException.class, () -> filmController.createFilm(validFilm));
     }
 
     @Test
-    void ThrowExceptionWhenDurationNegative() {
+    void throwExceptionWhenDurationNegative() {
         validFilm.setDuration(-1);
 
         assertThrows(ValidationException.class, () -> filmController.createFilm(validFilm));
     }
 
     @Test
-    void MinimumDuration() {
+    void minimumDuration() {
         validFilm.setDuration(1); // минимальная положительная продолжительность
 
         assertDoesNotThrow(() -> filmController.createFilm(validFilm));
     }
 
     @Test
-    void NullDescription() {
+    void nullDescription() {
         validFilm.setDescription(null);
 
         assertDoesNotThrow(() -> filmController.createFilm(validFilm));
     }
 
     @Test
-    void EmptyDescription() {
+    void emptyDescription() {
         validFilm.setDescription(""); // пустое описание допустимо
 
         assertDoesNotThrow(() -> filmController.createFilm(validFilm));

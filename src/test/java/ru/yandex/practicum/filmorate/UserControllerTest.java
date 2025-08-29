@@ -34,7 +34,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void CreateValidUser() {
+    void createValidUser() {
         User createdUser = userController.createUser(validUser);
 
         assertNotNull(createdUser);
@@ -44,7 +44,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void UseLoginWhenNameIsEmpty() {
+    void useLoginWhenNameIsEmpty() {
         validUser.setName("");
         User createdUser = userController.createUser(validUser);
 
@@ -52,7 +52,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void UseLoginWhenNameIsNull() {
+    void useLoginWhenNameIsNull() {
         validUser.setName(null);
         User createdUser = userController.createUser(validUser);
 
@@ -60,50 +60,50 @@ public class UserControllerTest {
     }
 
     @Test
-    void NullBirthday() {
+    void nullBirthday() {
         validUser.setBirthday(null);
         assertDoesNotThrow(() -> userController.createUser(validUser));
     }
 
     @Test
-    void ThrowExceptionWhenEmailIsEmpty() {
+    void throwExceptionWhenEmailIsEmpty() {
         validUser.setEmail("");
         assertThrows(ValidationException.class, () -> userController.createUser(validUser));
     }
 
     @Test
-    void ThrowExceptionWhenEmailIsNull() {
+    void throwExceptionWhenEmailIsNull() {
         validUser.setEmail(null);
         assertThrows(ValidationException.class, () -> userController.createUser(validUser));
     }
 
     @Test
-    void ThrowExceptionWhenEmailWithoutAt() {
+    void throwExceptionWhenEmailWithoutAt() {
         validUser.setEmail("invalid-email");
         assertThrows(ValidationException.class, () -> userController.createUser(validUser));
     }
 
     @Test
-    void ThrowExceptionWhenLoginIsEmpty() {
+    void throwExceptionWhenLoginIsEmpty() {
         validUser.setLogin("");
         assertThrows(ValidationException.class, () -> userController.createUser(validUser));
     }
 
     @Test
-    void ThrowExceptionWhenLoginIsNull() {
+    void throwExceptionWhenLoginIsNull() {
         validUser.setLogin(null);
         assertThrows(ValidationException.class, () -> userController.createUser(validUser));
     }
 
     @Test
-    void ThrowExceptionWhenLoginContainsSpaces() {
+    void throwExceptionWhenLoginContainsSpaces() {
         validUser.setLogin("login with spaces");
         assertThrows(ValidationException.class, () -> userController.createUser(validUser));
     }
 
 
     @Test
-    void ThrowExceptionWhenDuplicateEmail() {
+    void throwExceptionWhenDuplicateEmail() {
         userController.createUser(validUser); // Создаем первого пользователя
 
         User newUser = new User();
@@ -115,7 +115,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void UpdateUser() {
+    void updateUser() {
         User createdUser = userController.createUser(validUser);
         Long userId = createdUser.getId();
 
@@ -133,7 +133,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void PartUpdateUser() {
+    void partUpdateUser() {
         User createdUser = userController.createUser(validUser);
         Long userId = createdUser.getId();
 
@@ -148,7 +148,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void GetAllUsers() {
+    void getAllUsers() {
         userController.createUser(validUser);
 
         User anotherUser = new User();
@@ -164,7 +164,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void shouldReturnEmptyListWhenNoUsers() {
+    void returnEmptyListWhenNoUsers() {
         ArrayList<User> users = userController.getUsers();
 
         assertNotNull(users);
