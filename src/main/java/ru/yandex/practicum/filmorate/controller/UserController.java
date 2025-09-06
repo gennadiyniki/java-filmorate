@@ -1,25 +1,22 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.validator.UserValidator;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
+    private final UserValidator userValidator;
     private Map<Long, User> users = new HashMap<>();
     private long nextId = 1;
 
@@ -27,32 +24,15 @@ public class UserController {
     public User createUser(@RequestBody User user) {
         log.info("Запрос на создание пользователя: {}", user);
 
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            log.warn("Пустой email");
-            throw new ValidationException("Электронная почта не может быть пустой");
-        }
-        if (!user.getEmail().contains("@")) {
-            log.warn("Email без @: {}", user.getEmail());
-            throw new ValidationException("Электронная почта должна содержать символ @");
-        }
-        if (user.getLogin() == null || user.getLogin().isBlank()) {
-            log.warn("Пустой логин");
-            throw new ValidationException("Логин не может быть пустым");
-        }
-        if (user.getLogin().contains(" ")) {
-            log.warn("Логин с пробелами: {}", user.getLogin());
-            throw new ValidationException("Логин не может содержать пробелы");
-        }
+        userValidator.validateEmail(user.getEmail());
+        userValidator.validateLogin(user.getLogin());
+        userValidator.validateBirthday(user.getBirthday());
+
         for (User saveUser : users.values()) {
             if (saveUser.getEmail().equalsIgnoreCase(user.getEmail())) {
                 log.warn("Email уже используется: {}", user.getEmail());
                 throw new ValidationException("Этот имейл уже используется");
             }
-        }
-
-        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Дата рождения в будущем: {}", user.getBirthday());
-            throw new ValidationException("Дата рождения не может быть в будущем");
         }
 
         if (user.getName() == null || user.getName().isBlank()) {
@@ -84,14 +64,7 @@ public class UserController {
         User saveUser = users.get(updatedUser.getId());
 
         if (updatedUser.getEmail() != null) {
-            if (updatedUser.getEmail().isBlank()) {
-                log.warn("Пустой email");
-                throw new ValidationException("Электронная почта не может быть пустой");
-            }
-            if (!updatedUser.getEmail().contains("@")) {
-                log.warn("Email без @: {}", updatedUser.getEmail());
-                throw new ValidationException("Электронная почта должна содержать символ @");
-            }
+            userValidator.validateEmail(updatedUser.getEmail());
 
             if (!updatedUser.getEmail().equals(saveUser.getEmail())) {
                 for (User userInMap : users.values()) {
@@ -105,14 +78,7 @@ public class UserController {
         }
 
         if (updatedUser.getLogin() != null) {
-            if (updatedUser.getLogin().isBlank()) {
-                log.warn("Пустой логин");
-                throw new ValidationException("Логин не может быть пустым");
-            }
-            if (updatedUser.getLogin().contains(" ")) {
-                log.warn("Логин с пробелами: {}", updatedUser.getLogin());
-                throw new ValidationException("Логин не может содержать пробелы");
-            }
+            userValidator.validateLogin(updatedUser.getLogin());
             saveUser.setLogin(updatedUser.getLogin());
         }
 
@@ -125,10 +91,7 @@ public class UserController {
         }
 
         if (updatedUser.getBirthday() != null) {
-            if (updatedUser.getBirthday().isAfter(LocalDate.now())) {
-                log.warn("Дата рождения в будущем: {}", updatedUser.getBirthday());
-                throw new ValidationException("Дата рождения не может быть в будущем");
-            }
+            userValidator.validateBirthday(updatedUser.getBirthday());
             saveUser.setBirthday(updatedUser.getBirthday());
         }
 
@@ -148,13 +111,12 @@ public class UserController {
         return user;
     }
 
-    private long getNextId() {
-        return nextId++;
-    }
-
     @GetMapping
     public ArrayList<User> getUsers() {
         return new ArrayList<>(users.values());
     }
-}
 
+    private long getNextId() {
+        return nextId++;
+    }
+}

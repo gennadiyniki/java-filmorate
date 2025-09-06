@@ -7,7 +7,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@ToString
 public class Film {
     private Long id;
     private String name;
