@@ -15,7 +15,7 @@ public interface UserService {
 
     public ArrayList<User> getUsers();
 
-    void addFriend(Long UserId, Long friendId);
+    void addFriend(Long userId, Long friendId);
 
     void removeFriend(Long userId, Long friendId);
 
