@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -21,22 +22,41 @@ public class UserServiceImp implements UserService {
     @Override
     public User createUser(User user) {
         userValidator.validate(user);
-        return userStorage.createUser(user);
+        uniqueEmail(user.getEmail());
 
+
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+
+
+        if (user.getFriends() == null) {
+            user.setFriends(new HashSet<>());
+        }
+
+        return userStorage.createUser(user);
     }
 
     @Override
     public User updateUser(User updatedUser) {
         userValidator.validate(updatedUser);
-        userStorage.getUserById(updatedUser.getId());
+        if (updatedUser.getId() == null) {
+            throw new ValidationException("ID пользователя обязателен для обновления");
+        }
+        getUserById(updatedUser.getId());
         return userStorage.updateUser(updatedUser);
     }
 
 
     @Override
     public User getUserById(Long userId) {
-        return userStorage.getUserById(userId);
+        User user = userStorage.getUserById(userId);
+        if(user == null) {
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+        }
+        return user;
     }
+
 
     @Override
     public ArrayList<User> getUsers() {
@@ -105,5 +125,12 @@ public class UserServiceImp implements UserService {
         }
 
         return commonFriends;
+    }
+    private void uniqueEmail(String email){
+        for(User savedUser: userStorage.getUsers()) {
+            if(savedUser.getEmail().equalsIgnoreCase(email)) {
+                throw new ValidationException("Этот email уже используется");
+            }
+        }
     }
 }

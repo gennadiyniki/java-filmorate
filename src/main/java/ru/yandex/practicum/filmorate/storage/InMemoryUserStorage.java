@@ -19,21 +19,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User createUser(User user) {
-
-        for (User savedUser : users.values()) {
-            if (savedUser.getEmail().equalsIgnoreCase(user.getEmail())) {
-                throw new ValidationException("Этот email уже используется");
-            }
-        }
-
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-
-        if (user.getFriends() == null) {
-            user.setFriends(new HashSet<>());
-        }
-
         user.setId(getNextId());
         users.put(user.getId(), user);
         return user;
@@ -41,24 +26,14 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User updatedUser) {
-        if (updatedUser.getId() == null) {
-            throw new ValidationException("ID пользователя обязателен для обновления");
-        }
-
-        if (!users.containsKey(updatedUser.getId())) {
-            throw new NotFoundException("Пользователь с ID " + updatedUser.getId() + " не найден");
-        }
         users.put(updatedUser.getId(), updatedUser);
         return updatedUser;
     }
 
     @Override
     public User getUserById(Long id) {
-        User user = users.get(id);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с ID " + id + " не найден");
-        }
-        return user;
+
+        return users.get(id);
     }
 
     @Override

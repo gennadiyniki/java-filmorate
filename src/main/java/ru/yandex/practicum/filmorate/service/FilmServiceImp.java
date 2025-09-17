@@ -29,14 +29,18 @@ public class FilmServiceImp implements FilmService {
 
     @Override
     public Film updateFilm(Film film) {
-        filmValidator.validateFilm(film); // ✅ validateFilm вместо validate
+        filmValidator.validateFilm(film);
         getFilmById(film.getId());
         return filmStorage.updateFilm(film);
     }
 
     @Override
     public Film getFilmById(Long filmId) {
-        return filmStorage.getFilmById(filmId);
+        Film film = filmStorage.getFilmById(filmId);
+        if (film == null) {
+            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+        }
+        return film;
     }
 
     @Override
@@ -69,12 +73,7 @@ public class FilmServiceImp implements FilmService {
     @Override
     public List<Film> getPopularFilms(int count) {
         List<Film> films = filmStorage.getFilms();
-        films.sort((film1, film2) -> {
-            return Integer.compare(film2.getLikes().size(), film1.getLikes().size());
-        });
-        if (films.size() > count) {
-            return films.subList(0, count);
-        }
-        return films;
+        films.sort((film1, film2) -> Integer.compare(film2.getLikes().size(), film1.getLikes().size()));
+        return films.stream().limit(count).toList();
     }
 }
