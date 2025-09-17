@@ -51,7 +51,7 @@ public class UserServiceImp implements UserService {
     @Override
     public User getUserById(Long userId) {
         User user = userStorage.getUserById(userId);
-        if(user == null) {
+        if (user == null) {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден");
         }
         return user;
@@ -126,9 +126,10 @@ public class UserServiceImp implements UserService {
 
         return commonFriends;
     }
-    private void uniqueEmail(String email){
-        for(User savedUser: userStorage.getUsers()) {
-            if(savedUser.getEmail().equalsIgnoreCase(email)) {
+
+    private void uniqueEmail(String email) {
+        for (User savedUser : userStorage.getUsers()) {
+            if (savedUser.getEmail().equalsIgnoreCase(email)) {
                 throw new ValidationException("Этот email уже используется");
             }
         }
