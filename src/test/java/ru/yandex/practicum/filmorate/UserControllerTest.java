@@ -10,7 +10,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.controller.UserController;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -140,6 +140,8 @@ public class UserControllerTest {
         User updateData = new User();
         updateData.setId(createdUser.getId());
         updateData.setEmail("part@email.com");
+        updateData.setLogin("testlogin"); // ← Добавить логин
+        updateData.setName("Test User");
 
         User updatedUser = userController.updateUser(updateData);
 
@@ -158,7 +160,7 @@ public class UserControllerTest {
         anotherUser.setBirthday(LocalDate.of(1985, 1, 1));
         userController.createUser(anotherUser);
 
-        ArrayList<User> users = userController.getUsers();
+        List<User> users = userController.getUsers();
 
         assertNotNull(users);
         assertEquals(2, users.size());
@@ -166,7 +168,7 @@ public class UserControllerTest {
 
     @Test
     void returnEmptyListWhenNoUsers() {
-        ArrayList<User> users = userController.getUsers();
+        List<User> users = userController.getUsers();
 
         assertNotNull(users);
         assertTrue(users.isEmpty());

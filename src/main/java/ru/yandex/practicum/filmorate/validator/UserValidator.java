@@ -3,12 +3,29 @@ package ru.yandex.practicum.filmorate.validator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 
 @Slf4j
 @Component
 public class UserValidator {
+
+    private final UserStorage userStorage;
+
+    public UserValidator(UserStorage userStorage) {
+        this.userStorage = userStorage;
+    }
+
+    public void validate(User user) {
+        validateEmail(user.getEmail());
+        validateLogin(user.getLogin());
+        validateBirthday(user.getBirthday());
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+    }
 
     public void validateEmail(String email) {
         if (email == null || email.isBlank()) {
