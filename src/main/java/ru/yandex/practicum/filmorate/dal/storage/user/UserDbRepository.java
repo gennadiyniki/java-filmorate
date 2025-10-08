@@ -18,14 +18,14 @@ import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Repository("jdbcUserRepository")
+@Repository("userDbRepository")
 @Primary
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class JdbcUserRepository extends BaseRepository<User>
+public class UserDbRepository extends BaseRepository<User>
         implements UserRepository, UserStorage {
     RowMapper<User> mapper = new UserRowMapper();
 
-    public JdbcUserRepository(JdbcTemplate jdbc) {
+    public UserDbRepository(JdbcTemplate jdbc) {
         super(jdbc);
     }
 
@@ -101,6 +101,13 @@ public class JdbcUserRepository extends BaseRepository<User>
         }
     }
 
+    @Override
+    public void truncateUsers() {
+        jdbc.update("DELETE FROM friendship_status");
+        jdbc.update("DELETE FROM users");
+        jdbc.update("ALTER TABLE users ALTER COLUMN user_id RESTART WITH 1");
+    }
+
     public User findByEmail(String email) {
         String query = "SELECT * FROM users WHERE email = ?";
         User user = findOne(query, mapper, email)
@@ -113,16 +120,8 @@ public class JdbcUserRepository extends BaseRepository<User>
 
     @Override
     public void addFriend(Long userId, Long friendId) {
-        String userExistsQuery = "SELECT COUNT(*) FROM users WHERE user_id = ?";
-        Integer userCount = jdbc.queryForObject(userExistsQuery, Integer.class, userId);
-        Integer friendCount = jdbc.queryForObject(userExistsQuery, Integer.class, friendId);
-
-        if (userCount == 0) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
-        }
-        if (friendCount == 0) {
-            throw new NotFoundException("Пользователь с id " + friendId + " не найден");
-        }
+        getById(userId);
+        getById(friendId);
 
         if (userId.equals(friendId)) {
             throw new IllegalArgumentException("Нельзя добавить себя в друзья");
@@ -143,7 +142,6 @@ public class JdbcUserRepository extends BaseRepository<User>
 
         String query = "DELETE FROM friendship_status WHERE user_id = ? AND friend_id = ?";
         jdbc.update(query, userId, friendId);
-
     }
 
     @Override
@@ -192,7 +190,7 @@ public class JdbcUserRepository extends BaseRepository<User>
     }
 
     @Override
-    public ArrayList<User> getUsers() {
+    public List<User> getUsers() {
         return new ArrayList<>(getAllValues());
     }
 }

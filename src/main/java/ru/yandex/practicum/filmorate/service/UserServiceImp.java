@@ -8,7 +8,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.validator.UserValidator;
 
-import java.util.ArrayList;
+
 import java.util.HashSet;
 import java.util.List;
 
@@ -18,6 +18,11 @@ import java.util.List;
 public class UserServiceImp implements UserService {
     private final UserStorage userStorage;
     private final UserValidator userValidator;
+
+    @Override
+    public void clearAllUsers() {
+        userStorage.truncateUsers();
+    }
 
     @Override
     public User createUser(User user) {
@@ -59,7 +64,7 @@ public class UserServiceImp implements UserService {
 
 
     @Override
-    public ArrayList<User> getUsers() {
+    public List<User> getUsers() {
         return userStorage.getUsers();
     }
 
@@ -91,6 +96,9 @@ public class UserServiceImp implements UserService {
     }
 
     private void uniqueEmail(String email) {
+        if (email == null) {
+            return;
+        }
         for (User savedUser : userStorage.getUsers()) {
             if (savedUser.getEmail().equalsIgnoreCase(email)) {
                 throw new ValidationException("Этот email уже используется");

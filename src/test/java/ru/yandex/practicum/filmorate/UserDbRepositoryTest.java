@@ -10,7 +10,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import ru.yandex.practicum.filmorate.dal.storage.user.JdbcUserRepository;
+import ru.yandex.practicum.filmorate.dal.storage.user.UserDbRepository;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -25,18 +25,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({JdbcUserRepository.class})
+@Import({UserDbRepository.class})
 @ContextConfiguration(classes = {FilmorateApplication.class})
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class JdbcUserRepositoryTest {
-    JdbcUserRepository jdbcUserRepository;
+public class UserDbRepositoryTest {
+    UserDbRepository userDbRepository;
 
 
     @Test
     void createTest() {
         User user = createUser();
-        User newUser = jdbcUserRepository.create(user);
+        User newUser = userDbRepository.create(user);
 
         assertThat(newUser).hasFieldOrPropertyWithValue("id", newUser.getId());
         assertThat(newUser).hasFieldOrPropertyWithValue("name", user.getName());
@@ -64,8 +64,8 @@ public class JdbcUserRepositoryTest {
     @Test
     void getByIdTest() {
         User user = createUser();
-        User newUser = jdbcUserRepository.create(user);
-        User userById = jdbcUserRepository.getById(newUser.getId());
+        User newUser = userDbRepository.create(user);
+        User userById = userDbRepository.getById(newUser.getId());
 
         assertThat(userById).hasFieldOrPropertyWithValue("id", 1L);
         assertThat(userById).hasFieldOrPropertyWithValue("name", "Имя");
@@ -76,9 +76,9 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void getAllTest() {
-        User user1 = jdbcUserRepository.create(createUser());
-        User user2 = jdbcUserRepository.create(createUser());
-        Map<Long, User> collection = jdbcUserRepository.getAll();
+        User user1 = userDbRepository.create(createUser());
+        User user2 = userDbRepository.create(createUser());
+        Map<Long, User> collection = userDbRepository.getAll();
 
         assertEquals(collection.size(), 2, "Количество возвращено неверно");
         assertEquals(collection.get(1L), user1, "user1 возвращается неверно");
@@ -87,9 +87,9 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void getAllValuesTest() {
-        User user1 = jdbcUserRepository.create(createUser());
-        User user2 = jdbcUserRepository.create(createUser());
-        List<User> collection = jdbcUserRepository.getAllValues();
+        User user1 = userDbRepository.create(createUser());
+        User user2 = userDbRepository.create(createUser());
+        List<User> collection = userDbRepository.getAllValues();
 
         assertEquals(collection.size(), 2, "Количество возвращено неверно");
         assertEquals(collection.get(0), user1, "user1 возвращается неверно");
@@ -98,7 +98,7 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void updateTest() {
-        User user = jdbcUserRepository.create(createUser());
+        User user = userDbRepository.create(createUser());
         User userUpdate = User.builder()
                 .id(user.getId())
                 .login("логин2")
@@ -106,8 +106,8 @@ public class JdbcUserRepositoryTest {
                 .email("email2@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
-        jdbcUserRepository.update(userUpdate);
-        user = jdbcUserRepository.getById(1L);
+        userDbRepository.update(userUpdate);
+        user = userDbRepository.getById(1L);
 
         assertThat(user).hasFieldOrPropertyWithValue("id", 1L);
         assertThat(user).hasFieldOrPropertyWithValue("name", "Имя2");
@@ -118,10 +118,10 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void deleteByIdTest() {
-        User user1 = jdbcUserRepository.create(createUser());
-        User user2 = jdbcUserRepository.create(createUser());
-        jdbcUserRepository.deleteById(1L);
-        Map<Long, User> collection = jdbcUserRepository.getAll();
+        User user1 = userDbRepository.create(createUser());
+        User user2 = userDbRepository.create(createUser());
+        userDbRepository.deleteById(1L);
+        Map<Long, User> collection = userDbRepository.getAll();
 
         assertEquals(collection.size(), 1, "Количество возвращено неверно");
         assertEquals(collection.get(2L), user2, "user2 возвращается неверно");
@@ -129,25 +129,25 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void findByEmailTest() {
-        User user1 = jdbcUserRepository.create(createUser());
-        User result = jdbcUserRepository.findByEmail("email@mail.ru");
+        User user1 = userDbRepository.create(createUser());
+        User result = userDbRepository.findByEmail("email@mail.ru");
 
         assertEquals(result, user1, "user1 возвращается неверно");
     }
 
     @Test
     void addFriendTest() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = userDbRepository.create(createUser());
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
                 .email("email2@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
-        jdbcUserRepository.create(user2);
-        jdbcUserRepository.addFriend(user1.getId(), user2.getId());
+        userDbRepository.create(user2);
+        userDbRepository.addFriend(user1.getId(), user2.getId());
 
-        Set<Long> friends = jdbcUserRepository.getFriendIdsFromDB(user1.getId());
+        Set<Long> friends = userDbRepository.getFriendIdsFromDB(user1.getId());
 
         assertEquals(friends.size(), 1, "Количество друзей возвращается неверно");
         assertTrue(friends.contains(user2.getId()));
@@ -155,28 +155,28 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void removeFriendTest() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = userDbRepository.create(createUser());
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
                 .email("email2@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
-        jdbcUserRepository.create(user2);
+        userDbRepository.create(user2);
         User user3 = User.builder()
                 .login("логин3")
                 .name("Имя3")
                 .email("email3@mail.ru")
                 .birthday(LocalDate.of(2000, 10, 19))
                 .build();
-        jdbcUserRepository.create(user3);
+        userDbRepository.create(user3);
 
-        jdbcUserRepository.addFriend(user1.getId(), user2.getId());
-        jdbcUserRepository.addFriend(user1.getId(), user3.getId());
+        userDbRepository.addFriend(user1.getId(), user2.getId());
+        userDbRepository.addFriend(user1.getId(), user3.getId());
 
-        jdbcUserRepository.removeFriend(user1.getId(), user2.getId());
+        userDbRepository.removeFriend(user1.getId(), user2.getId());
 
-        Set<Long> friends = jdbcUserRepository.getFriendIdsFromDB(user1.getId());
+        Set<Long> friends = userDbRepository.getFriendIdsFromDB(user1.getId());
 
         assertEquals(friends.size(), 1, "Количество друзей возвращается неверно");
         assertTrue(friends.contains(user3.getId()));
@@ -184,26 +184,26 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void getFriendIdsFromDB() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = userDbRepository.create(createUser());
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
                 .email("email2@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
-        jdbcUserRepository.create(user2);
+        userDbRepository.create(user2);
         User user3 = User.builder()
                 .login("логин3")
                 .name("Имя3")
                 .email("email3@mail.ru")
                 .birthday(LocalDate.of(2000, 10, 19))
                 .build();
-        jdbcUserRepository.create(user3);
+        userDbRepository.create(user3);
 
-        jdbcUserRepository.addFriend(user1.getId(), user2.getId());
-        jdbcUserRepository.addFriend(user1.getId(), user3.getId());
+        userDbRepository.addFriend(user1.getId(), user2.getId());
+        userDbRepository.addFriend(user1.getId(), user3.getId());
 
-        Set<Long> friends = jdbcUserRepository.getFriendIdsFromDB(user1.getId());
+        Set<Long> friends = userDbRepository.getFriendIdsFromDB(user1.getId());
 
         assertEquals(friends.size(), 2, "Количество друзей возвращается неверно");
         assertTrue(friends.contains(user2.getId()));
@@ -212,58 +212,58 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void getMutualFriends() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = userDbRepository.create(createUser());
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
                 .email("email2@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
-        jdbcUserRepository.create(user2);
+        userDbRepository.create(user2);
         User user3 = User.builder()
                 .login("логин3")
                 .name("Имя3")
                 .email("email3@mail.ru")
                 .birthday(LocalDate.of(2000, 10, 19))
                 .build();
-        jdbcUserRepository.create(user3);
+        userDbRepository.create(user3);
 
-        jdbcUserRepository.addFriend(user1.getId(), user2.getId());
-        jdbcUserRepository.addFriend(user2.getId(), user1.getId());
-        jdbcUserRepository.addFriend(user3.getId(), user2.getId());
+        userDbRepository.addFriend(user1.getId(), user2.getId());
+        userDbRepository.addFriend(user2.getId(), user1.getId());
+        userDbRepository.addFriend(user3.getId(), user2.getId());
 
-        List<User> friends = jdbcUserRepository.getMutualFriends(user1.getId(), user3.getId());
+        List<User> friends = userDbRepository.getMutualFriends(user1.getId(), user3.getId());
 
         assertEquals(friends.size(), 1, "Количество друзей возвращается неверно");
         assertTrue(friends.contains(user2));
 
-        friends = jdbcUserRepository.getMutualFriends(user2.getId(), user3.getId());
+        friends = userDbRepository.getMutualFriends(user2.getId(), user3.getId());
 
         assertEquals(friends.size(), 0, "Количество друзей возвращается неверно");
     }
 
     @Test
     void getAllFriends() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = userDbRepository.create(createUser());
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
                 .email("email2@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
-        jdbcUserRepository.create(user2);
+        userDbRepository.create(user2);
         User user3 = User.builder()
                 .login("логин3")
                 .name("Имя3")
                 .email("email3@mail.ru")
                 .birthday(LocalDate.of(2000, 10, 19))
                 .build();
-        jdbcUserRepository.create(user3);
+        userDbRepository.create(user3);
 
-        jdbcUserRepository.addFriend(user1.getId(), user2.getId());
-        jdbcUserRepository.addFriend(user1.getId(), user3.getId());
+        userDbRepository.addFriend(user1.getId(), user2.getId());
+        userDbRepository.addFriend(user1.getId(), user3.getId());
 
-        Set<Long> friends = jdbcUserRepository.getFriendIdsFromDB(user1.getId());
+        Set<Long> friends = userDbRepository.getFriendIdsFromDB(user1.getId());
 
         assertEquals(friends.size(), 2, "Количество друзей возвращается неверно");
         assertTrue(friends.contains(user2.getId()));

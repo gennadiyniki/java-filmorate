@@ -31,6 +31,8 @@ public interface UserRepository extends UserStorage {
 
     List<User> getAllFriends(Long userId);
 
+    void truncateUsers();
+
     User findByEmail(String email);
 
 }

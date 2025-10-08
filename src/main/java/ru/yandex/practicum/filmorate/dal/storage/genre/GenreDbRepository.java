@@ -19,7 +19,7 @@ import java.util.Optional;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
-public class JdbcGenreRepository implements GenreRepository {
+public class GenreDbRepository implements GenreRepository {
     RowMapper<Genre> mapper = new GenreRowMapper();
     JdbcTemplate jdbc;
 

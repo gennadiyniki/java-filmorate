@@ -19,7 +19,7 @@ import java.util.Optional;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
-public class JdbcMpaRepository implements MpaRepository {
+public class MpaDbRepository implements MpaRepository {
     RowMapper<RatingMpa> mapper = new RatingMpaRowMapper();
     JdbcTemplate jdbc;
 

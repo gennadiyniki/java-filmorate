@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate;
 
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -9,10 +10,11 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
-import ru.yandex.practicum.filmorate.dal.storage.mpa.JdbcMpaRepository;
-import ru.yandex.practicum.filmorate.model.RatingMpa;
+import ru.yandex.practicum.filmorate.dal.storage.genre.GenreDbRepository;
+import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,24 +22,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({JdbcMpaRepository.class})
+@Import({GenreDbRepository.class})
 @ContextConfiguration(classes = {FilmorateApplication.class})
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class JdbcMpaRepositoryTest {
-    JdbcMpaRepository jdbcMpaRepository;
+public class GenreDbRepositoryTest {
+    GenreDbRepository genreDbRepository;
 
     @Test
-    public void getAllMpa() {
-        Collection<RatingMpa> mpa = jdbcMpaRepository.getAllMpa();
+    public void getAllGenres() {
+        Collection<Genre> genres = genreDbRepository.getAllGenres();
 
-        assertEquals(mpa.size(), 5);
+        assertEquals(genres.size(), 6);
     }
 
     @Test
-    public void getMpaById() {
-        RatingMpa mpa = jdbcMpaRepository.getMpaById(1);
+    public void getGenreById() {
+        Optional<Genre> genreOptional = genreDbRepository.getGenreById(1);
 
-        assertThat(mpa).hasFieldOrPropertyWithValue("id", 1);
-        assertThat(mpa).hasFieldOrPropertyWithValue("name", "G");
+        assertThat(genreOptional)
+                .isPresent()
+                .hasValueSatisfying(mpa -> {
+                    assertThat(mpa).hasFieldOrPropertyWithValue("id", 1);
+                    assertThat(mpa).hasFieldOrPropertyWithValue("name", "Комедия");
+                });
     }
 }

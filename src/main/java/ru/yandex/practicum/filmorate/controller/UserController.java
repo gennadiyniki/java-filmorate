@@ -65,4 +65,11 @@ public class UserController {
         log.info("Получение общих друзей пользователей {} и {}", id, otherId);
         return userService.getCommonFriends(id, otherId);
     }
+
+    @DeleteMapping("/reset")
+    public void clearAllUsers() {
+        log.info("Запрос на очистку всех пользователей");
+        userService.clearAllUsers();
+        log.info("Все пользователи успешно очищены");
+    }
 }

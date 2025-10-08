@@ -14,6 +14,12 @@ public class InMemoryUserStorage implements UserStorage {
     private long nextId = 1;
 
     @Override
+    public void truncateUsers() {
+        users.clear();
+        nextId = 1;
+    }
+
+    @Override
     public User createUser(User user) {
         user.setId(getNextId());
         users.put(user.getId(), user);
@@ -33,7 +39,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public ArrayList<User> getUsers() {
+    public List<User> getUsers() {
         return new ArrayList<>(users.values());
     }
 

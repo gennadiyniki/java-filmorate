@@ -10,8 +10,8 @@ import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.LikeUserIdsRowMapper;
 import ru.yandex.practicum.filmorate.dal.storage.BaseRepository;
-import ru.yandex.practicum.filmorate.dal.storage.genre.JdbcGenreRepository;
-import ru.yandex.practicum.filmorate.dal.storage.mpa.JdbcMpaRepository;
+import ru.yandex.practicum.filmorate.dal.storage.genre.GenreDbRepository;
+import ru.yandex.practicum.filmorate.dal.storage.mpa.MpaDbRepository;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -24,26 +24,26 @@ import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Repository("jdbcFilmRepository")
+@Repository("FilmDbRepository")
 @Primary
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepository, FilmStorage {
+public class FilmDbRepository extends BaseRepository<Film> implements FilmRepository, FilmStorage {
     RowMapper<Film> mapper = new FilmRowMapper();
-    JdbcMpaRepository jdbcMpaRepository;
+    MpaDbRepository mpaDbRepository;
     UserStorage userStorage;
-    JdbcGenreRepository jdbcGenreRepository;
+    GenreDbRepository genreDbRepository;
 
-    public JdbcFilmRepository(JdbcTemplate jdbc, JdbcMpaRepository jdbcMpaRepository,
-                              UserStorage userStorage, JdbcGenreRepository jdbcGenreRepository) {
+    public FilmDbRepository(JdbcTemplate jdbc, MpaDbRepository mpaDbRepository,
+                            UserStorage userStorage, GenreDbRepository genreDbRepository) {
         super(jdbc);
-        this.jdbcMpaRepository = jdbcMpaRepository;
+        this.mpaDbRepository = mpaDbRepository;
         this.userStorage = userStorage;
-        this.jdbcGenreRepository = jdbcGenreRepository;
+        this.genreDbRepository = genreDbRepository;
     }
 
     @Override
     public Film create(Film film) {
-        RatingMpa mpa = jdbcMpaRepository.getMpaById(film.getMpa().getId());
+        RatingMpa mpa = mpaDbRepository.getMpaById(film.getMpa().getId());
 
         String query = "INSERT INTO film(name, description, release_date, " +
                 "duration_in_minutes, rating_id) VALUES (?, ?, ?, ?, ?)";
@@ -80,7 +80,7 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
         film.setLikes(likes);
         List<Genre> genres = getGenreFromDB(id);
         film.setGenres(genres);
-        film.setMpa(jdbcMpaRepository.getMpaById(film.getMpa().getId()));
+        film.setMpa(mpaDbRepository.getMpaById(film.getMpa().getId()));
         return film;
     }
 
@@ -97,14 +97,14 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
         for (Film film : films) {
             film.setLikes(getLikeUserIdsFromDB(film.getId()));
             film.setGenres(getGenreFromDB(film.getId()));
-            film.setMpa(jdbcMpaRepository.getMpaById(film.getMpa().getId()));
+            film.setMpa(mpaDbRepository.getMpaById(film.getMpa().getId()));
         }
         return films;
     }
 
     @Override
     public Film update(Film film) {
-        RatingMpa mpa = jdbcMpaRepository.getMpaById(film.getMpa().getId());
+        RatingMpa mpa = mpaDbRepository.getMpaById(film.getMpa().getId());
         String query = "UPDATE film SET name = ?, description = ?, release_date = ?, duration_in_minutes = ?, " +
                 "rating_id = ? WHERE film_id = ?";
         super.update(query,
@@ -162,7 +162,7 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
 
     public boolean addFilmGenresToDB(Long filmId, List<Genre> genres) {
         for (Genre genre : genres) {
-            jdbcGenreRepository.getGenreById(genre.getId());
+            genreDbRepository.getGenreById(genre.getId());
             String query = "MERGE INTO film_genre AS target " +
                     "KEY (film_id, genre_id) " +
                     "VALUES (?, ?)";
@@ -185,7 +185,7 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
         for (Film film : films) {
             film.setLikes(getLikeUserIdsFromDB(film.getId()));
             film.setGenres(getGenreFromDB(film.getId()));
-            film.setMpa(jdbcMpaRepository.getMpaById(film.getMpa().getId()));
+            film.setMpa(mpaDbRepository.getMpaById(film.getMpa().getId()));
         }
 
         return films;
