@@ -43,4 +43,12 @@ public class Film {
 
     @Builder.Default
     List<Genre> genres = new ArrayList<>();
+
+    Integer rate;
+    public Integer getRate() {
+        return rate;
+    }
+    public void setRate(Integer rate) {
+        this.rate = rate;
+    }
 }
