@@ -104,6 +104,7 @@ public class UserDbRepository extends BaseRepository<User>
     @Override
     public void truncateUsers() {
         jdbc.update("DELETE FROM friendship_status");
+        jdbc.update("DELETE FROM film_likes");
         jdbc.update("DELETE FROM users");
         jdbc.update("ALTER TABLE users ALTER COLUMN user_id RESTART WITH 1");
     }
