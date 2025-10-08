@@ -207,7 +207,7 @@ public class FilmDbRepository extends BaseRepository<Film> implements FilmReposi
         getById(filmId);
 
         // BREAKPOINT существование лайка перед вставкой
-        String checkSql = "SELECT user_id FROM film_likes WHERE film_id = ?";
+        String checkSql = "SELECT COUNT(*) FROM film_likes WHERE film_id = ? AND user_id = ?";
         Integer count = jdbc.queryForObject(checkSql, Integer.class, filmId, userId);
         System.out.println("DEBUG: Existing likes count = " + count);
 
