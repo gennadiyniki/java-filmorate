@@ -1,40 +1,45 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exception.ErrorResponse;
+import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
-
-@RestControllerAdvice
+@Slf4j
+@RestControllerAdvice()
 public class ErrorHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(ErrorHandler.class);
-
-    @ExceptionHandler(ValidationException.class)
+    @ExceptionHandler({MethodArgumentNotValidException.class, ValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidationException(ValidationException e) {
-        log.error("ValidationException: {}", e.getMessage());
+    public ErrorResponse validationExceptionHandle(Exception e) {
+        log.error("Ошибка: {}({}).", e.getClass().getSimpleName(), e.getMessage());
         return new ErrorResponse("Ошибка валидации", e.getMessage());
     }
 
-
-    @ExceptionHandler(NotFoundException.class)
+    @ExceptionHandler({NotFoundException.class, EmptyResultDataAccessException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFoundException(NotFoundException e) {
-        log.error("NotFoundException: {}", e.getMessage());
-        return new ErrorResponse("Не найдено", e.getMessage());
+    public ErrorResponse storageNotFoundExceptionHandle(Exception e) {
+        log.warn("Ошибка: {}({}).", e.getClass().getSimpleName(), e.getMessage());
+        return new ErrorResponse("Запрашиваемый ресурс не найден", e.getMessage());
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(InternalServerException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleAllExceptions(Exception e) {
-        log.error("Internal server error: {}", e.getMessage(), e);
-        return new ErrorResponse("Внутренняя ошибка сервера", "Произошла непредвиденная ошибка");
+    public ErrorResponse internalServerExceptionHandle(final InternalServerException i) {
+        log.error("Ошибка: {}({}).", i.getClass().getSimpleName(), i.getMessage());
+        return new ErrorResponse("Ошибка сервера", i.getMessage());
+    }
+
+    @ExceptionHandler(Throwable.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse throwableHandle(final Throwable t) {
+        log.error("Ошибка: {}({}).", t.getClass().getSimpleName(), t.getMessage());
+        return new ErrorResponse("Ошибка сервера", t.getMessage());
     }
 }

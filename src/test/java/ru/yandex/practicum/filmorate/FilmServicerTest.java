@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.RatingMpa;
 
 
 import java.time.LocalDate;
@@ -22,12 +23,18 @@ public class FilmServicerTest {
 
     @BeforeEach
     void setUp() {
+        RatingMpa mpa = RatingMpa.builder()
+                .id(1)
+                .name("G")
+                .build();
 
-        validFilm = new Film();
-        validFilm.setName("Test Film");
-        validFilm.setDescription("Test Description");
-        validFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
-        validFilm.setDuration(120);
+        validFilm = Film.builder()
+                .name("Test Film")
+                .description("Test Description")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(120)  // ← ДОБАВЬТЕ ЭТУ СТРОКУ!
+                .mpa(mpa)
+                .build();
     }
 
     @Test
@@ -56,11 +63,13 @@ public class FilmServicerTest {
 
     @Test
     void throwExceptionWhenReleaseDateBefore1895() {
-        Film invalidFilm = new Film();
-        invalidFilm.setName("Test Film");
-        invalidFilm.setDescription("Test Description");
-        invalidFilm.setReleaseDate(LocalDate.of(1894, 12, 31));
-        invalidFilm.setDuration(120);
+        Film invalidFilm = Film.builder()
+                .name("Test Film")
+                .description("Test Description")
+                .releaseDate(LocalDate.of(1894, 12, 31))
+                .mpa(validFilm.getMpa())
+                .duration(120)
+                .build();
 
         assertThrows(ValidationException.class, () -> filmController.createFilm(invalidFilm));
     }

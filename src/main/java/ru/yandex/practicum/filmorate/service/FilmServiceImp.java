@@ -2,10 +2,10 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.validator.FilmValidator;
+
 
 import java.util.List;
 
@@ -50,30 +50,19 @@ public class FilmServiceImp implements FilmService {
 
     @Override
     public void addLike(Long filmId, Long userId) {
-        Film film = getFilmById(filmId);
-        userService.getUserById(userId);
-        if (film.getLikes().contains(userId)) {
-            throw new ValidationException("Пользователь уже поставил лайк этому фильму");
-        }
-        film.getLikes().add(userId);
-        filmStorage.updateFilm(film);
+        // BREAKPOINT что приходит в сервис
+        System.out.println("DEBUG Service: filmId=" + filmId + ", userId=" + userId);
+
+        filmStorage.addLike(filmId, userId);
     }
 
     @Override
     public void removeLike(Long filmId, Long userId) {
-        Film film = getFilmById(filmId);
-        userService.getUserById(userId);
-        if (!film.getLikes().contains(userId)) {
-            throw new NotFoundException("Лайк от пользователя не найден");
-        }
-        film.getLikes().remove(userId);
-        filmStorage.updateFilm(film);
+        filmStorage.removeLike(filmId, userId);
     }
 
     @Override
     public List<Film> getPopularFilms(int count) {
-        List<Film> films = filmStorage.getFilms();
-        films.sort((film1, film2) -> Integer.compare(film2.getLikes().size(), film1.getLikes().size()));
-        return films.stream().limit(count).toList();
+        return filmStorage.getPopularFilms(count);
     }
 }
