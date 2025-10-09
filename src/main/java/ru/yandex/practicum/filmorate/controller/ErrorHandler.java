@@ -8,12 +8,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exception.ErrorResponse;
-import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 @Slf4j
-@RestControllerAdvice()
+@RestControllerAdvice
 public class ErrorHandler {
     @ExceptionHandler({MethodArgumentNotValidException.class, ValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -29,17 +28,11 @@ public class ErrorHandler {
         return new ErrorResponse("Запрашиваемый ресурс не найден", e.getMessage());
     }
 
-    @ExceptionHandler(InternalServerException.class)
+    @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse internalServerExceptionHandle(final InternalServerException i) {
+    public ErrorResponse internalServerExceptionHandle(final Exception i) {
         log.error("Ошибка: {}({}).", i.getClass().getSimpleName(), i.getMessage());
         return new ErrorResponse("Ошибка сервера", i.getMessage());
     }
-
-    @ExceptionHandler(Throwable.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse throwableHandle(final Throwable t) {
-        log.error("Ошибка: {}({}).", t.getClass().getSimpleName(), t.getMessage());
-        return new ErrorResponse("Ошибка сервера", t.getMessage());
-    }
 }
+

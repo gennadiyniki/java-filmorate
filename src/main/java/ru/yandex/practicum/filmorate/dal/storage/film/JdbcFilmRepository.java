@@ -142,7 +142,7 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
 
     @Override
     public Set<Long> getLikeUserIdsFromDB(long id) {
-        String query = "SELECT user_id FROM film_users WHERE film_id = ?";
+        String query = "SELECT user_id FROM film_likes WHERE film_id = ?";
         return new HashSet<>(jdbc.query(query, new LikeUserIdsRowMapper(), id));
     }
 
@@ -175,7 +175,7 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
     public List<Film> getPopularFilms(int count) {
         String query = "SELECT f.*, COUNT(fu.user_id) as likes_count " +
                 "FROM film f " +
-                "LEFT JOIN film_users fu ON f.film_id = fu.film_id " +
+                "LEFT JOIN film_likes fu ON f.film_id = fu.film_id " +
                 "GROUP BY f.film_id " +
                 "ORDER BY likes_count DESC " +
                 "LIMIT ?";
@@ -206,7 +206,7 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
         getById(filmId);
 
         // BREAKPOINT существование лайка перед вставкой
-        String checkSql = "SELECT COUNT(*) FROM film_users WHERE film_id = ? AND user_id = ?";
+        String checkSql = "SELECT COUNT(*) FROM film_likes WHERE film_id = ? AND user_id = ?";
         Integer count = jdbc.queryForObject(checkSql, Integer.class, filmId, userId);
         System.out.println("DEBUG: Existing likes count = " + count);
 
@@ -219,7 +219,7 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
 
         // BREAKPOINT Перед вставкой
         System.out.println("DEBUG: Inserting new like...");
-        String insertSql = "INSERT INTO film_users (film_id, user_id) VALUES (?, ?)";
+        String insertSql = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
 
         try {
             jdbc.update(insertSql, filmId, userId);
@@ -257,7 +257,7 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
         getById(filmId);
         userStorage.getUserById(userId);
 
-        String query = "DELETE FROM film_users WHERE film_id = ? AND user_id = ?";
+        String query = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
         jdbc.update(query, filmId, userId);
     }
 }
