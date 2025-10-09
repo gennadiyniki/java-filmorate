@@ -1,123 +1,215 @@
-# java-filmorate
-# java-filmorate
-Сервис, который работает с фильмами и оценками пользователей,
-а также возвращает топ-10 фильмов, рекомендованных к просмотру
+[//]: # (# java-filmorate)
 
-## Схема БД
+[//]: # (# java-filmorate)
 
-![Схема #1 к БД java-filmorate](/src/main/resources/diagram_db.png)
+[//]: # (Сервис, который работает с фильмами и оценками пользователей,)
 
-## Примеры запросов
-<details>
-    <summary>ДЛЯ ФИЛЬМОВ:</summary>
+[//]: # (а также возвращает топ-10 фильмов, рекомендованных к просмотру)
 
-* Получение списка всех фильмов:
+[//]: # ()
+[//]: # (## Схема БД)
 
-```SQL
-SELECT *
-FROM film;
-```
+[//]: # ()
+[//]: # (![Схема #1 к БД java-filmorate]&#40;/src/main/resources/diagram_db.png&#41;)
 
-* Получение информации по фильму по его id:
+[//]: # ()
+[//]: # (## Примеры запросов)
 
-```SQL
-SELECT *
-FROM film
-WHERE film.film_id = <?>; -- id фильма
-```   
+[//]: # (<details>)
 
-* Получение списка МРА - рейтинга
+[//]: # (    <summary>ДЛЯ ФИЛЬМОВ:</summary>)
 
-```SQL
-SELECT *
-FROM rating_mpa;
-```
+[//]: # ()
+[//]: # (* Получение списка всех фильмов:)
 
-* Получение списка жанров
+[//]: # ()
+[//]: # (```SQL)
 
-```SQL
-SELECT *
-FROM genre;
-```
+[//]: # (SELECT *)
 
-* Получение списка фильмов с названием жанра
+[//]: # (FROM film;)
 
-```SQL
-SELECT f.name,
-        g.name        
-FROM film AS f
-LEFT JOIN film_genre AS fg ON f.film_id = fg.film_id
-LEFT JOIN genre AS g ON fg.genre_id = g.genre_id;
-```
+[//]: # (```)
 
-* Получение списка фильмов по МРА - рейтингу PG-13
+[//]: # ()
+[//]: # (* Получение информации по фильму по его id:)
 
-```SQL
-SELECT f.name, 
-        r.name AS rating_name
-FROM film f
-INNER JOIN rating_mpa r ON f.rating_id = r.rating_id
-WHERE r.name = 'PG-13';
-```
+[//]: # ()
+[//]: # (```SQL)
 
-* Получение топ-10 названий фильмов по количеству лайков:
+[//]: # (SELECT *)
 
-```SQL
-SELECT name
-FROM film
-WHERE film_id IN (
-    SELECT film_id
-    FROM film_users
-    GROUP BY film_id
-    ORDER BY COUNT(user_id) DESC
-    LIMIT 10
-);
-```
+[//]: # (FROM film)
 
-</details>
+[//]: # (WHERE film.film_id = <?>; -- id фильма)
 
-<details>
-    <summary>ДЛЯ ПОЛЬЗОВАТЕЛЕЙ:</summary>
+[//]: # (```   )
 
-* Получение списка всех пользователей:
+[//]: # ()
+[//]: # (* Получение списка МРА - рейтинга)
 
-```SQL
-SELECT *
-FROM users;
-```
+[//]: # ()
+[//]: # (```SQL)
 
-* Получение информации по пользователю по его id:
+[//]: # (SELECT *)
 
-```SQL
-SELECT *
-FROM users
-WHERE users.user_id = <?>; -- id пользователя
-```
+[//]: # (FROM rating_mpa;)
 
-* Получение id и имени друзей по id пользователя = <?>:
+[//]: # (```)
 
-```SQL
-SELECT u.name,
-        u.user_id
-FROM users AS u
-WHERE u.user_id IN (
-    SELECT f.friend_id
-    FROM friendship_status AS f
-    WHERE f.user_id = <?> 
-);
-```
+[//]: # ()
+[//]: # (* Получение списка жанров)
 
-* Получение общих друзей двух пользователей user_id = 1 и user_id = 2
+[//]: # ()
+[//]: # (```SQL)
 
-```SQL
-SELECT u.*
-FROM users u
-INNER JOIN friendship_status f1 ON u.user_id = f1.friend_id
-INNER JOIN friendship_status f2 ON u.user_id = f2.friend_id
-WHERE f1.user_id = 1
-    AND f2.user_id = 2;
+[//]: # (SELECT *)
 
+[//]: # (FROM genre;)
 
-```
+[//]: # (```)
 
-</details>
+[//]: # ()
+[//]: # (* Получение списка фильмов с названием жанра)
+
+[//]: # ()
+[//]: # (```SQL)
+
+[//]: # (SELECT f.name,)
+
+[//]: # (        g.name        )
+
+[//]: # (FROM film AS f)
+
+[//]: # (LEFT JOIN film_genre AS fg ON f.film_id = fg.film_id)
+
+[//]: # (LEFT JOIN genre AS g ON fg.genre_id = g.genre_id;)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (* Получение списка фильмов по МРА - рейтингу PG-13)
+
+[//]: # ()
+[//]: # (```SQL)
+
+[//]: # (SELECT f.name, )
+
+[//]: # (        r.name AS rating_name)
+
+[//]: # (FROM film f)
+
+[//]: # (INNER JOIN rating_mpa r ON f.rating_id = r.rating_id)
+
+[//]: # (WHERE r.name = 'PG-13';)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (* Получение топ-10 названий фильмов по количеству лайков:)
+
+[//]: # ()
+[//]: # (```SQL)
+
+[//]: # (SELECT name)
+
+[//]: # (FROM film)
+
+[//]: # (WHERE film_id IN &#40;)
+
+[//]: # (    SELECT film_id)
+
+[//]: # (    FROM film_users)
+
+[//]: # (    GROUP BY film_id)
+
+[//]: # (    ORDER BY COUNT&#40;user_id&#41; DESC)
+
+[//]: # (    LIMIT 10)
+
+[//]: # (&#41;;)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (</details>)
+
+[//]: # ()
+[//]: # (<details>)
+
+[//]: # (    <summary>ДЛЯ ПОЛЬЗОВАТЕЛЕЙ:</summary>)
+
+[//]: # ()
+[//]: # (* Получение списка всех пользователей:)
+
+[//]: # ()
+[//]: # (```SQL)
+
+[//]: # (SELECT *)
+
+[//]: # (FROM users;)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (* Получение информации по пользователю по его id:)
+
+[//]: # ()
+[//]: # (```SQL)
+
+[//]: # (SELECT *)
+
+[//]: # (FROM users)
+
+[//]: # (WHERE users.user_id = <?>; -- id пользователя)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (* Получение id и имени друзей по id пользователя = <?>:)
+
+[//]: # ()
+[//]: # (```SQL)
+
+[//]: # (SELECT u.name,)
+
+[//]: # (        u.user_id)
+
+[//]: # (FROM users AS u)
+
+[//]: # (WHERE u.user_id IN &#40;)
+
+[//]: # (    SELECT f.friend_id)
+
+[//]: # (    FROM friendship_status AS f)
+
+[//]: # (    WHERE f.user_id = <?> )
+
+[//]: # (&#41;;)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (* Получение общих друзей двух пользователей user_id = 1 и user_id = 2)
+
+[//]: # ()
+[//]: # (```SQL)
+
+[//]: # (SELECT u.*)
+
+[//]: # (FROM users u)
+
+[//]: # (INNER JOIN friendship_status f1 ON u.user_id = f1.friend_id)
+
+[//]: # (INNER JOIN friendship_status f2 ON u.user_id = f2.friend_id)
+
+[//]: # (WHERE f1.user_id = 1)
+
+[//]: # (    AND f2.user_id = 2;)
+
+[//]: # ()
+[//]: # ()
+[//]: # (```)
+
+[//]: # ()
+[//]: # (</details>)
