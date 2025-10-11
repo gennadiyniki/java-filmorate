@@ -40,7 +40,7 @@ public class UserServiceImp implements UserService {
     @Override
     public User updateUser(User updatedUser) {
         userValidator.validate(updatedUser);
-        if (updatedUser.getId() == null) {
+        if (updatedUser.getId() <= 0) {
             throw new ValidationException("ID пользователя обязателен для обновления");
         }
         getUserById(updatedUser.getId());
@@ -68,63 +68,26 @@ public class UserServiceImp implements UserService {
         if (userId.equals(friendId)) {
             throw new ValidationException("Пользователь не может добавить себя в друзья");
         }
-
-        User user = getUserById(userId);
-        User friend = getUserById(friendId);
-
-        if (user.getFriends() == null) {
-            user.setFriends(new HashSet<>());
-        }
-        if (friend.getFriends() == null) {
-            friend.setFriends(new HashSet<>());
-        }
-
-        // Добавляем дружбу в обе стороны
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
-
-        userStorage.updateUser(user);
-        userStorage.updateUser(friend);
+        getUserById(userId);
+        getUserById(friendId);
+        userStorage.addFriend(userId, friendId);
     }
 
     @Override
     public void removeFriend(Long userId, Long friendId) {
-        User user = getUserById(userId);
-        User friend = getUserById(friendId);
-
-        user.getFriends().remove(friendId);
-        friend.getFriends().remove(userId);
-
-        userStorage.updateUser(user);
-        userStorage.updateUser(friend);
+        getUserById(userId);
+        getUserById(friendId);
+        userStorage.removeFriend(userId, friendId);
     }
 
     @Override
     public List<User> getFriends(Long userId) {
-        User user = getUserById(userId);
-        List<User> friendsList = new ArrayList<>();
-        for (Long friendId : user.getFriends()) {
-            User friend = getUserById(friendId);
-            friendsList.add(friend);
-        }
-        return friendsList;
+        return userStorage.getAllFriends(userId);
     }
 
     @Override
     public List<User> getCommonFriends(Long userId1, Long userId2) {
-        User user1 = getUserById(userId1);
-        User user2 = getUserById(userId2);
-
-        List<User> commonFriends = new ArrayList<>();
-
-        for (Long friendId : user1.getFriends()) {
-            if (user2.getFriends().contains(friendId)) {
-                User commonFriend = getUserById(friendId);
-                commonFriends.add(commonFriend);
-            }
-        }
-
-        return commonFriends;
+        return userStorage.getMutualFriends(userId1, userId2);
     }
 
     private void uniqueEmail(String email) {

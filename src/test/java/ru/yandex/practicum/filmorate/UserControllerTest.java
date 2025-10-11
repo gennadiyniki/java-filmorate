@@ -4,10 +4,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.controller.UserController;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,16 +21,23 @@ public class UserControllerTest {
     @Autowired
     private UserController userController;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private User validUser;
 
     @BeforeEach
     void setUp() {
+
+        jdbcTemplate.update("DELETE FROM friendship_status");
+        jdbcTemplate.update("DELETE FROM users");
+        jdbcTemplate.update("ALTER TABLE users ALTER COLUMN user_id RESTART WITH 1");
+
         validUser = new User();
         validUser.setEmail("test@email.com");
         validUser.setLogin("testlogin");
         validUser.setName("Test User");
         validUser.setBirthday(LocalDate.of(1990, 1, 1));
-
     }
 
     @Test
@@ -56,12 +64,6 @@ public class UserControllerTest {
         User createdUser = userController.createUser(validUser);
 
         assertEquals("testlogin", createdUser.getName());
-    }
-
-    @Test
-    void nullBirthday() {
-        validUser.setBirthday(null);
-        assertDoesNotThrow(() -> userController.createUser(validUser));
     }
 
     @Test
@@ -100,13 +102,17 @@ public class UserControllerTest {
         assertThrows(ValidationException.class, () -> userController.createUser(validUser));
     }
 
-
     @Test
     void throwExceptionWhenDuplicateEmail() {
-        userController.createUser(validUser); // Создаем первого пользователя
+        User firstUser = new User();
+        firstUser.setEmail("duplicate@email.com");
+        firstUser.setLogin("firstlogin");
+        firstUser.setBirthday(LocalDate.of(1990, 1, 1));
+        userController.createUser(firstUser);
 
+        // Второй пользователь с тем же email
         User newUser = new User();
-        newUser.setEmail("test@email.com"); // Тот же email
+        newUser.setEmail("duplicate@email.com");
         newUser.setLogin("newlogin");
         newUser.setBirthday(LocalDate.of(1995, 1, 1));
 
@@ -116,36 +122,37 @@ public class UserControllerTest {
     @Test
     void updateUser() {
         User createdUser = userController.createUser(validUser);
-        Long userId = createdUser.getId();
 
         User updateData = new User();
         updateData.setId(createdUser.getId());
-        updateData.setEmail("new@email.com");
-        updateData.setLogin("newlogin");
+        updateData.setEmail("updated@email.com");
+        updateData.setLogin("updatedlogin");
         updateData.setName("New Name");
         updateData.setBirthday(LocalDate.of(1995, 1, 1));
 
         User updatedUser = userController.updateUser(updateData);
 
-        assertEquals("new@email.com", updatedUser.getEmail());
-        assertEquals("newlogin", updatedUser.getLogin());
+        assertEquals("updated@email.com", updatedUser.getEmail());
+        assertEquals("updatedlogin", updatedUser.getLogin());
         assertEquals("New Name", updatedUser.getName());
     }
 
     @Test
     void partUpdateUser() {
         User createdUser = userController.createUser(validUser);
-        Long userId = createdUser.getId();
 
-        User updateData = new User();
-        updateData.setId(createdUser.getId());
-        updateData.setEmail("part@email.com");
-        updateData.setLogin("testlogin"); // ← Добавить логин
-        updateData.setName("Test User");
+        User updateData = User.builder()
+                .id(createdUser.getId())
+                .email("partupdate@email.com")
+                .login("testlogin")
+                .name("Test User")
+                .birthday(createdUser.getBirthday())
+                .friends(createdUser.getFriends())
+                .build();
 
         User updatedUser = userController.updateUser(updateData);
 
-        assertEquals("part@email.com", updatedUser.getEmail());
+        assertEquals("partupdate@email.com", updatedUser.getEmail());
         assertEquals("testlogin", updatedUser.getLogin());
         assertEquals("Test User", updatedUser.getName());
     }

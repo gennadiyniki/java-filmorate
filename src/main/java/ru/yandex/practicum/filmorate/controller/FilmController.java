@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -21,7 +22,6 @@ public class FilmController {
         Film createdFilm = filmService.createFilm(film);
         log.info("Фильм создан: {}", film);
         return createdFilm;
-
     }
 
     @PutMapping
@@ -34,8 +34,11 @@ public class FilmController {
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+        // BREAKPOINT 1: Проверяем входящие параметры
         log.info("Добавление лайка: фильм {}, пользователь {}", id, userId);
-        filmService.addLike(id, userId); // Передаем id (filmId) в сервис
+        System.out.println("DEBUG Controller: filmId=" + id + ", userId=" + userId);
+
+        filmService.addLike(id, userId);
     }
 
 
@@ -46,7 +49,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
+    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         log.info("Получение {} популярных фильмов", count);
         return filmService.getPopularFilms(count);
     }

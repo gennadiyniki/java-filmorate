@@ -46,7 +46,7 @@ public class FilmValidator {
         }
     }
 
-    public void validateDuration(int duration) {
+    public void validateDuration(long duration) {
         if (duration <= 0) {
             log.warn("Попытка создания фильма c некорректной продолжительностью: {}", duration);
             throw new ValidationException("Продолжительность фильма должна быть положительным числом");
