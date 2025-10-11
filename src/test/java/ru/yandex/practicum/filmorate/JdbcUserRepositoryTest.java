@@ -3,11 +3,13 @@ package ru.yandex.practicum.filmorate;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import ru.yandex.practicum.filmorate.dal.storage.user.JdbcUserRepository;
@@ -19,8 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @JdbcTest
 @AutoConfigureTestDatabase
@@ -31,11 +32,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class JdbcUserRepositoryTest {
     JdbcUserRepository jdbcUserRepository;
+    JdbcTemplate jdbcTemplate;
 
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.update("DELETE FROM friendship_status");
+        jdbcTemplate.update("DELETE FROM film_likes");
+        jdbcTemplate.update("DELETE FROM users");
+        jdbcTemplate.update("ALTER TABLE users ALTER COLUMN user_id RESTART WITH 1");
+    }
+
+    private User createUser(String email) {
+        return User.builder()
+                .name("Имя")
+                .login("логин")
+                .birthday(LocalDate.of(1999, 9, 9))
+                .email(email)
+                .build();
+    }
 
     @Test
     void createTest() {
-        User user = createUser();
+        User user = createUser("email@mail.ru");
         User newUser = jdbcUserRepository.create(user);
 
         assertThat(newUser).hasFieldOrPropertyWithValue("id", newUser.getId());
@@ -51,19 +69,9 @@ public class JdbcUserRepositoryTest {
         assertThat(newUser).hasFieldOrPropertyWithValue("email", "email@mail.ru");
     }
 
-    private User createUser() {
-        return User
-                .builder()
-                .name("Имя")
-                .login("логин")
-                .birthday(LocalDate.of(1999, 9, 9))
-                .email("email@mail.ru")
-                .build();
-    }
-
     @Test
     void getByIdTest() {
-        User user = createUser();
+        User user = createUser("email@mail.ru");
         User newUser = jdbcUserRepository.create(user);
         User userById = jdbcUserRepository.getById(newUser.getId());
 
@@ -76,29 +84,29 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void getAllTest() {
-        User user1 = jdbcUserRepository.create(createUser());
-        User user2 = jdbcUserRepository.create(createUser());
+        User user1 = jdbcUserRepository.create(createUser("user1@mail.ru"));
+        User user2 = jdbcUserRepository.create(createUser("user2@mail.ru"));
         Map<Long, User> collection = jdbcUserRepository.getAll();
 
-        assertEquals(collection.size(), 2, "Количество возвращено неверно");
-        assertEquals(collection.get(1L), user1, "user1 возвращается неверно");
-        assertEquals(collection.get(2L), user2, "user2 возвращается неверно");
+        assertEquals(2, collection.size());
+        assertEquals(user1, collection.get(user1.getId()));
+        assertEquals(user2, collection.get(user2.getId()));
     }
 
     @Test
     void getAllValuesTest() {
-        User user1 = jdbcUserRepository.create(createUser());
-        User user2 = jdbcUserRepository.create(createUser());
+        User user1 = jdbcUserRepository.create(createUser("user3@mail.ru"));
+        User user2 = jdbcUserRepository.create(createUser("user4@mail.ru"));
         List<User> collection = jdbcUserRepository.getAllValues();
 
-        assertEquals(collection.size(), 2, "Количество возвращено неверно");
-        assertEquals(collection.get(0), user1, "user1 возвращается неверно");
-        assertEquals(collection.get(1), user2, "user2 возвращается неверно");
+        assertEquals(2, collection.size());
+        assertTrue(collection.contains(user1));
+        assertTrue(collection.contains(user2));
     }
 
     @Test
     void updateTest() {
-        User user = jdbcUserRepository.create(createUser());
+        User user = jdbcUserRepository.create(createUser("email@mail.ru"));
         User userUpdate = User.builder()
                 .id(user.getId())
                 .login("логин2")
@@ -118,30 +126,31 @@ public class JdbcUserRepositoryTest {
 
     @Test
     void deleteByIdTest() {
-        User user1 = jdbcUserRepository.create(createUser());
-        User user2 = jdbcUserRepository.create(createUser());
-        jdbcUserRepository.deleteById(1L);
+        User user1 = jdbcUserRepository.create(createUser("user5@mail.ru"));
+        User user2 = jdbcUserRepository.create(createUser("user6@mail.ru"));
+        jdbcUserRepository.deleteById(user1.getId());
         Map<Long, User> collection = jdbcUserRepository.getAll();
 
-        assertEquals(collection.size(), 1, "Количество возвращено неверно");
-        assertEquals(collection.get(2L), user2, "user2 возвращается неверно");
+        assertEquals(1, collection.size());
+        assertEquals(collection.get(user2.getId()), user2);
+        assertNull(collection.get(user1.getId()));
     }
 
     @Test
     void findByEmailTest() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = jdbcUserRepository.create(createUser("email@mail.ru"));
         User result = jdbcUserRepository.findByEmail("email@mail.ru");
 
-        assertEquals(result, user1, "user1 возвращается неверно");
+        assertEquals(result, user1);
     }
 
     @Test
     void addFriendTest() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = jdbcUserRepository.create(createUser("user7@mail.ru"));
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
-                .email("email2@mail.ru")
+                .email("user8@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
         jdbcUserRepository.create(user2);
@@ -149,24 +158,24 @@ public class JdbcUserRepositoryTest {
 
         Set<Long> friends = jdbcUserRepository.getFriendIdsFromDB(user1.getId());
 
-        assertEquals(friends.size(), 1, "Количество друзей возвращается неверно");
+        assertEquals(1, friends.size());
         assertTrue(friends.contains(user2.getId()));
     }
 
     @Test
     void removeFriendTest() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = jdbcUserRepository.create(createUser("user9@mail.ru"));
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
-                .email("email2@mail.ru")
+                .email("user10@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
         jdbcUserRepository.create(user2);
         User user3 = User.builder()
                 .login("логин3")
                 .name("Имя3")
-                .email("email3@mail.ru")
+                .email("user11@mail.ru")
                 .birthday(LocalDate.of(2000, 10, 19))
                 .build();
         jdbcUserRepository.create(user3);
@@ -178,24 +187,24 @@ public class JdbcUserRepositoryTest {
 
         Set<Long> friends = jdbcUserRepository.getFriendIdsFromDB(user1.getId());
 
-        assertEquals(friends.size(), 1, "Количество друзей возвращается неверно");
+        assertEquals(1, friends.size());
         assertTrue(friends.contains(user3.getId()));
     }
 
     @Test
     void getFriendIdsFromDB() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = jdbcUserRepository.create(createUser("user12@mail.ru"));
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
-                .email("email2@mail.ru")
+                .email("user13@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
         jdbcUserRepository.create(user2);
         User user3 = User.builder()
                 .login("логин3")
                 .name("Имя3")
-                .email("email3@mail.ru")
+                .email("user14@mail.ru")
                 .birthday(LocalDate.of(2000, 10, 19))
                 .build();
         jdbcUserRepository.create(user3);
@@ -205,25 +214,25 @@ public class JdbcUserRepositoryTest {
 
         Set<Long> friends = jdbcUserRepository.getFriendIdsFromDB(user1.getId());
 
-        assertEquals(friends.size(), 2, "Количество друзей возвращается неверно");
+        assertEquals(2, friends.size());
         assertTrue(friends.contains(user2.getId()));
         assertTrue(friends.contains(user3.getId()));
     }
 
     @Test
     void getMutualFriends() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = jdbcUserRepository.create(createUser("user15@mail.ru"));
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
-                .email("email2@mail.ru")
+                .email("user16@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
         jdbcUserRepository.create(user2);
         User user3 = User.builder()
                 .login("логин3")
                 .name("Имя3")
-                .email("email3@mail.ru")
+                .email("user17@mail.ru")
                 .birthday(LocalDate.of(2000, 10, 19))
                 .build();
         jdbcUserRepository.create(user3);
@@ -234,28 +243,28 @@ public class JdbcUserRepositoryTest {
 
         List<User> friends = jdbcUserRepository.getMutualFriends(user1.getId(), user3.getId());
 
-        assertEquals(friends.size(), 1, "Количество друзей возвращается неверно");
+        assertEquals(1, friends.size());
         assertTrue(friends.contains(user2));
 
         friends = jdbcUserRepository.getMutualFriends(user2.getId(), user3.getId());
 
-        assertEquals(friends.size(), 0, "Количество друзей возвращается неверно");
+        assertEquals(0, friends.size());
     }
 
     @Test
     void getAllFriends() {
-        User user1 = jdbcUserRepository.create(createUser());
+        User user1 = jdbcUserRepository.create(createUser("user18@mail.ru"));
         User user2 = User.builder()
                 .login("логин2")
                 .name("Имя2")
-                .email("email2@mail.ru")
+                .email("user19@mail.ru")
                 .birthday(LocalDate.of(2000, 8, 19))
                 .build();
         jdbcUserRepository.create(user2);
         User user3 = User.builder()
                 .login("логин3")
                 .name("Имя3")
-                .email("email3@mail.ru")
+                .email("user20@mail.ru")
                 .birthday(LocalDate.of(2000, 10, 19))
                 .build();
         jdbcUserRepository.create(user3);
@@ -265,7 +274,7 @@ public class JdbcUserRepositoryTest {
 
         Set<Long> friends = jdbcUserRepository.getFriendIdsFromDB(user1.getId());
 
-        assertEquals(friends.size(), 2, "Количество друзей возвращается неверно");
+        assertEquals(2, friends.size());
         assertTrue(friends.contains(user2.getId()));
         assertTrue(friends.contains(user3.getId()));
     }
