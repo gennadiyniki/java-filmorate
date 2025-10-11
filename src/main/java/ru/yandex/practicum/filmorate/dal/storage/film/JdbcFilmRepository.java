@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.dal.storage.film;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -17,10 +19,12 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,13 +36,15 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
     JdbcMpaRepository jdbcMpaRepository;
     UserStorage userStorage;
     JdbcGenreRepository jdbcGenreRepository;
+    private JdbcOperations jdbcTemplate;
 
     public JdbcFilmRepository(JdbcTemplate jdbc, JdbcMpaRepository jdbcMpaRepository,
-                              UserStorage userStorage, JdbcGenreRepository jdbcGenreRepository) {
+                              UserStorage userStorage, JdbcGenreRepository jdbcGenreRepository, JdbcOperations jdbcTemplate) {
         super(jdbc);
         this.jdbcMpaRepository = jdbcMpaRepository;
         this.userStorage = userStorage;
         this.jdbcGenreRepository = jdbcGenreRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -92,12 +98,13 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
 
     @Override
     public List<Film> getAllValues() {
-        String query = "SELECT * FROM film";
+        String query = "SELECT f.*, r.rating_id as mpa_id, r.name as mpa_name " +
+                "FROM film f " +
+                "JOIN rating_mpa r ON f.rating_id = r.rating_id";
         List<Film> films = findMany(query, mapper);
         for (Film film : films) {
             film.setLikes(getLikeUserIdsFromDB(film.getId()));
             film.setGenres(getGenreFromDB(film.getId()));
-            film.setMpa(jdbcMpaRepository.getMpaById(film.getMpa().getId()));
         }
         return films;
     }
@@ -163,11 +170,26 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
     public boolean addFilmGenresToDB(Long filmId, List<Genre> genres) {
         for (Genre genre : genres) {
             jdbcGenreRepository.getGenreById(genre.getId());
-            String query = "MERGE INTO film_genre AS target " +
-                    "KEY (film_id, genre_id) " +
-                    "VALUES (?, ?)";
-            jdbc.update(query, filmId, genre.getId());
         }
+
+        String query = "MERGE INTO film_genre AS target " +
+                "KEY (film_id, genre_id) " +
+                "VALUES (?, ?)";
+
+        jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                Genre genre = genres.get(i);  // ← Берем жанр по индексу
+                preparedStatement.setLong(1, filmId);
+                preparedStatement.setLong(2, genre.getId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return genres.size();  // ← Возвращаем реальный размер
+            }
+        });
+
         return true;
     }
 
@@ -198,35 +220,24 @@ public class JdbcFilmRepository extends BaseRepository<Film> implements FilmRepo
 
     @Override
     public void addLike(Long filmId, Long userId) {
-        // BREAKPOINT Начало
-        System.out.println("=== DEBUG JdbcFilmRepository.addLike ===");
-        System.out.println("filmId: " + filmId + ", userId: " + userId);
 
         userStorage.getUserById(userId);
         getById(filmId);
 
-        // BREAKPOINT существование лайка перед вставкой
+
         String checkSql = "SELECT COUNT(*) FROM film_likes WHERE film_id = ? AND user_id = ?";
         Integer count = jdbc.queryForObject(checkSql, Integer.class, filmId, userId);
-        System.out.println("DEBUG: Existing likes count = " + count);
 
         if (count != null && count > 0) {
-            // BREAKPOINT Если лайк уже существует
-            System.out.println("DEBUG: Like already exists! filmId=" + filmId + ", userId=" + userId);
-            System.out.println("DEBUG: This should not happen in tests!");
             return;
         }
 
-        // BREAKPOINT Перед вставкой
-        System.out.println("DEBUG: Inserting new like...");
+
         String insertSql = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
 
         try {
             jdbc.update(insertSql, filmId, userId);
-            System.out.println("DEBUG: Like inserted successfully");
         } catch (Exception e) {
-            // BREAKPOINT Если ошибка
-            System.out.println("DEBUG: ERROR during insert: " + e.getMessage());
             throw e;
         }
     }
